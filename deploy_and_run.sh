@@ -46,15 +46,46 @@ echo "[4/5] Checking LTX-Video-2B model..."
 if [ -d "models/LTX-Video-2B" ] && [ "$(ls -A models/LTX-Video-2B)" ]; then
     echo "✓ Model already exists, skipping download"
 else
-    echo "Downloading LTX-Video-2B model from HuggingFace..."
+    echo "Attempting to download LTX-Video-2B model from HuggingFace..."
+    echo "Note: LTX-Video-2B may require accepting the model license on HuggingFace."
+    echo "      Visit: https://huggingface.co/Lightricks/LTX-Video-2B"
+    echo ""
     echo "This will take several minutes (model size: ~5GB)..."
 
-    python << 'EOF'
+    # Try with token if provided
+    if [ -n "$HUGGINGFACE_TOKEN" ]; then
+        echo "Using HuggingFace token from environment..."
+        python << 'EOF'
+from huggingface_hub import snapshot_download
+import os, sys
+
+try:
+    print("Starting download with token...")
+    snapshot_download(
+        repo_id='Lightricks/LTX-Video-2B',
+        local_dir='models/LTX-Video-2B',
+        local_dir_use_symlinks=False,
+        token=os.environ.get('HUGGINGFACE_TOKEN')
+    )
+    print("\n✓ Model download complete!")
+except Exception as e:
+    print(f"\n✗ Download failed: {e}")
+    print("\nIf you see '401 Unauthorized', you need to:")
+    print("1. Visit https://huggingface.co/Lightricks/LTX-Video-2B")
+    print("2. Accept the model license")
+    print("3. Generate a token at https://huggingface.co/settings/tokens")
+    print("4. Run: export HUGGINGFACE_TOKEN=your_token_here")
+    print("5. Run this script again")
+    sys.exit(1)
+EOF
+    else
+        # Try without token
+        python << 'EOF'
 from huggingface_hub import snapshot_download
 import sys
 
 try:
-    print("Starting download...")
+    print("Starting download (without token)...")
     snapshot_download(
         repo_id='Lightricks/LTX-Video-2B',
         local_dir='models/LTX-Video-2B',
@@ -63,13 +94,34 @@ try:
     print("\n✓ Model download complete!")
 except Exception as e:
     print(f"\n✗ Download failed: {e}")
+    print("\nLTX-Video-2B requires accepting the model license:")
+    print("1. Visit https://huggingface.co/Lightricks/LTX-Video-2B")
+    print("2. Click 'Agree and access repository'")
+    print("3. Generate a token at https://huggingface.co/settings/tokens")
+    print("4. Run: export HUGGINGFACE_TOKEN=your_token_here")
+    print("5. Run this script again")
+    print("\nAlternatively, download the model manually and place it in models/LTX-Video-2B/")
     sys.exit(1)
 EOF
+    fi
 
     if [ $? -eq 0 ]; then
         echo "✓ Model downloaded successfully"
     else
-        echo "✗ Model download failed"
+        echo ""
+        echo "=========================================="
+        echo "Model Download Failed - Manual Setup Required"
+        echo "=========================================="
+        echo ""
+        echo "Option 1: Use HuggingFace Token"
+        echo "  export HUGGINGFACE_TOKEN=hf_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+        echo "  bash deploy_and_run.sh"
+        echo ""
+        echo "Option 2: Download Manually"
+        echo "  1. Visit: https://huggingface.co/Lightricks/LTX-Video-2B"
+        echo "  2. Accept license and download model files"
+        echo "  3. Upload to: models/LTX-Video-2B/"
+        echo ""
         exit 1
     fi
 fi
