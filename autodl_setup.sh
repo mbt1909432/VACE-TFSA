@@ -52,23 +52,24 @@ echo "Creating models directory..."
 mkdir -p models
 echo ""
 
-# Download LTX-Video-2B model
+# Download LTX-Video model
 echo "=========================================="
 echo "Model Download"
 echo "=========================================="
 echo ""
-echo "Downloading LTX-Video-2B model from HuggingFace..."
+echo "Downloading LTX-Video model from HuggingFace..."
+echo "Repository: Lightricks/LTX-Video"
 echo "This will take several minutes depending on your connection speed."
 echo ""
 read -p "Press Enter to continue or Ctrl+C to cancel..."
 
 # Create model directory
-mkdir -p models/LTX-Video-2B
+mkdir -p models/LTX-Video
 
 # Download using huggingface-cli
 echo "Downloading model files..."
-huggingface-cli download Lightricks/LTX-Video-2B \
-    --local-dir models/LTX-Video-2B \
+huggingface-cli download Lightricks/LTX-Video \
+    --local-dir models/LTX-Video \
     --local-dir-use-symlinks False
 
 echo ""

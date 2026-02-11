@@ -3,7 +3,7 @@
 # This script handles the full deployment workflow:
 # 1. Enable network acceleration
 # 2. Pull latest code
-# 3. Download LTX-Video-2B model
+# 3. Download LTX-Video model
 # 4. Run TFSA validation tests
 # 5. Execute video generation with TFSA
 
@@ -39,17 +39,15 @@ echo "✓ TFSA validation passed"
 echo ""
 
 # ============================================
-# Step 4: Download LTX-Video-2B Model
+# Step 4: Download LTX-Video Model
 # ============================================
-echo "[4/5] Checking LTX-Video-2B model..."
+echo "[4/5] Checking LTX-Video model..."
 
-if [ -d "models/LTX-Video-2B" ] && [ "$(ls -A models/LTX-Video-2B)" ]; then
+if [ -d "models/LTX-Video" ] && [ "$(ls -A models/LTX-Video)" ]; then
     echo "✓ Model already exists, skipping download"
 else
-    echo "Attempting to download LTX-Video-2B model from HuggingFace..."
-    echo "Note: LTX-Video-2B may require accepting the model license on HuggingFace."
-    echo "      Visit: https://huggingface.co/Lightricks/LTX-Video-2B"
-    echo ""
+    echo "Downloading LTX-Video model from HuggingFace..."
+    echo "Repository: Lightricks/LTX-Video"
     echo "This will take several minutes (model size: ~5GB)..."
 
     # Try with token if provided
@@ -62,20 +60,14 @@ import os, sys
 try:
     print("Starting download with token...")
     snapshot_download(
-        repo_id='Lightricks/LTX-Video-2B',
-        local_dir='models/LTX-Video-2B',
+        repo_id='Lightricks/LTX-Video',
+        local_dir='models/LTX-Video',
         local_dir_use_symlinks=False,
         token=os.environ.get('HUGGINGFACE_TOKEN')
     )
     print("\n✓ Model download complete!")
 except Exception as e:
     print(f"\n✗ Download failed: {e}")
-    print("\nIf you see '401 Unauthorized', you need to:")
-    print("1. Visit https://huggingface.co/Lightricks/LTX-Video-2B")
-    print("2. Accept the model license")
-    print("3. Generate a token at https://huggingface.co/settings/tokens")
-    print("4. Run: export HUGGINGFACE_TOKEN=your_token_here")
-    print("5. Run this script again")
     sys.exit(1)
 EOF
     else
@@ -87,20 +79,19 @@ import sys
 try:
     print("Starting download (without token)...")
     snapshot_download(
-        repo_id='Lightricks/LTX-Video-2B',
-        local_dir='models/LTX-Video-2B',
+        repo_id='Lightricks/LTX-Video',
+        local_dir='models/LTX-Video',
         local_dir_use_symlinks=False
     )
     print("\n✓ Model download complete!")
 except Exception as e:
     print(f"\n✗ Download failed: {e}")
-    print("\nLTX-Video-2B requires accepting the model license:")
-    print("1. Visit https://huggingface.co/Lightricks/LTX-Video-2B")
-    print("2. Click 'Agree and access repository'")
-    print("3. Generate a token at https://huggingface.co/settings/tokens")
-    print("4. Run: export HUGGINGFACE_TOKEN=your_token_here")
-    print("5. Run this script again")
-    print("\nAlternatively, download the model manually and place it in models/LTX-Video-2B/")
+    print("\nIf download fails, you can:")
+    print("1. Generate a token at https://huggingface.co/settings/tokens")
+    print("2. Run: export HUGGINGFACE_TOKEN=your_token_here")
+    print("3. Run this script again")
+    print("\nOr download manually from:")
+    print("  https://huggingface.co/Lightricks/LTX-Video")
     sys.exit(1)
 EOF
     fi
@@ -108,20 +99,7 @@ EOF
     if [ $? -eq 0 ]; then
         echo "✓ Model downloaded successfully"
     else
-        echo ""
-        echo "=========================================="
-        echo "Model Download Failed - Manual Setup Required"
-        echo "=========================================="
-        echo ""
-        echo "Option 1: Use HuggingFace Token"
-        echo "  export HUGGINGFACE_TOKEN=hf_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
-        echo "  bash deploy_and_run.sh"
-        echo ""
-        echo "Option 2: Download Manually"
-        echo "  1. Visit: https://huggingface.co/Lightricks/LTX-Video-2B"
-        echo "  2. Accept license and download model files"
-        echo "  3. Upload to: models/LTX-Video-2B/"
-        echo ""
+        echo "✗ Model download failed"
         exit 1
     fi
 fi

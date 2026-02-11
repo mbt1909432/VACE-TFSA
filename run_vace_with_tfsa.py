@@ -207,7 +207,7 @@ def main():
                         default='models/ltx-vace',
                         help='Path to VACE checkpoint')
     parser.add_argument('--text_encoder_path', type=str,
-                        default='models/LTX-Video-2B',
+                        default='models/LTX-Video',
                         help='Path to text encoder')
     parser.add_argument('--precision', type=str, default='bfloat16',
                         choices=['bfloat16', 'float32', 'mixed_precision'],
