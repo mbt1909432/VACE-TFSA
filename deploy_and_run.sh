@@ -39,30 +39,36 @@ echo "✓ TFSA validation passed"
 echo ""
 
 # ============================================
-# Step 4: Download LTX-Video Model
+# Step 4: Download LTX-Video Model (2B version only)
 # ============================================
 echo "[4/5] Checking LTX-Video model..."
 
-if [ -d "models/LTX-Video" ] && [ "$(ls -A models/LTX-Video)" ]; then
+if [ -f "models/LTX-Video/ltx-video-2b-v0.9.safetensors" ]; then
     echo "✓ Model already exists, skipping download"
 else
-    echo "Downloading LTX-Video model from HuggingFace..."
+    echo "Downloading LTX-Video 2B model from HuggingFace..."
     echo "Repository: Lightricks/LTX-Video"
-    echo "This will take several minutes (model size: ~5GB)..."
+    echo "Model: ltx-video-2b-v0.9.safetensors (minimal version, ~5GB)"
+    echo "This will take several minutes depending on your connection speed..."
+    echo ""
+
+    # Create model directory
+    mkdir -p models/LTX-Video
 
     # Try with token if provided
     if [ -n "$HUGGINGFACE_TOKEN" ]; then
         echo "Using HuggingFace token from environment..."
         python << 'EOF'
-from huggingface_hub import snapshot_download
+from huggingface_hub import hf_hub_download
 import os, sys
 
 try:
-    print("Starting download with token...")
-    snapshot_download(
+    os.makedirs('models/LTX-Video', exist_ok=True)
+    print("Downloading ltx-video-2b-v0.9.safetensors...")
+    hf_hub_download(
         repo_id='Lightricks/LTX-Video',
+        filename='ltx-video-2b-v0.9.safetensors',
         local_dir='models/LTX-Video',
-        local_dir_use_symlinks=False,
         token=os.environ.get('HUGGINGFACE_TOKEN')
     )
     print("\n✓ Model download complete!")
@@ -73,15 +79,16 @@ EOF
     else
         # Try without token
         python << 'EOF'
-from huggingface_hub import snapshot_download
-import sys
+from huggingface_hub import hf_hub_download
+import os, sys
 
 try:
-    print("Starting download (without token)...")
-    snapshot_download(
+    os.makedirs('models/LTX-Video', exist_ok=True)
+    print("Downloading ltx-video-2b-v0.9.safetensors...")
+    hf_hub_download(
         repo_id='Lightricks/LTX-Video',
-        local_dir='models/LTX-Video',
-        local_dir_use_symlinks=False
+        filename='ltx-video-2b-v0.9.safetensors',
+        local_dir='models/LTX-Video'
     )
     print("\n✓ Model download complete!")
 except Exception as e:
@@ -91,13 +98,14 @@ except Exception as e:
     print("2. Run: export HUGGINGFACE_TOKEN=your_token_here")
     print("3. Run this script again")
     print("\nOr download manually from:")
-    print("  https://huggingface.co/Lightricks/LTX-Video")
+    print("  https://huggingface.co/Lightricks/LTX-Video/blob/main/ltx-video-2b-v0.9.safetensors")
     sys.exit(1)
 EOF
     fi
 
     if [ $? -eq 0 ]; then
         echo "✓ Model downloaded successfully"
+        ls -lh models/LTX-Video/ltx-video-2b-v0.9.safetensors
     else
         echo "✗ Model download failed"
         exit 1
