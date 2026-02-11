@@ -105,13 +105,14 @@ class TrainingFreeSelfAttention(nn.Module):
 
         elif self.temporal_only:
             # Apply TFSA across temporal dimension (temporal consistency)
-            x = x.permute(0, 3, 4, 1, 2)  # [B, H, W, C, T]
-            B, H, W, C, T = x.shape
-            f = x.reshape(B * H * W, C * T)  # [B*H*W, C*T]
+            # Reshape to treat each spatial location independently: [B*H*W, T, C]
+            f = x.permute(0, 3, 4, 2, 1).reshape(B * H * W, T, C)  # [B*H*W, T, C]
 
-            attn = torch.softmax(f @ f.T / self.lambda_sqrt, dim=-1)
-            output = attn @ f
-            output = output.reshape(B, H, W, C, T).permute(0, 3, 4, 1, 2)
+            # Compute temporal attention for each spatial location
+            attn = torch.softmax(f @ f.mT / self.lambda_sqrt, dim=-1)  # [B*H*W, T, C] @ [B*H*W, C, T] = [B*H*W, T, T]
+            output = attn @ f  # [B*H*W, T, T] @ [B*H*W, T, C] = [B*H*W, T, C]
+
+            output = output.reshape(B, H, W, T, C).permute(0, 4, 3, 1, 2)
             return output
 
         else:
@@ -119,8 +120,9 @@ class TrainingFreeSelfAttention(nn.Module):
             # Reshape to merge spatial and temporal: [B, T*H*W, C]
             f = x.permute(0, 2, 3, 4, 1).reshape(B, T * H * W, C)  # [B, T*H*W, C]
 
-            attn = torch.softmax(f @ f.T / self.lambda_sqrt, dim=-1)
-            output = attn @ f
+            # Use mT to transpose last two dimensions for batched matrix multiplication
+            attn = torch.softmax(f @ f.mT / self.lambda_sqrt, dim=-1)  # [B, N, C] @ [B, C, N] = [B, N, N]
+            output = attn @ f  # [B, N, N] @ [B, N, C] = [B, N, C]
 
             output = output.reshape(B, T, H, W, C).permute(0, 4, 1, 2, 3)
             return output
